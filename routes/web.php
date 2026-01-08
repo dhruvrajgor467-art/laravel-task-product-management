@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\ProductController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,7 +22,7 @@ Route::prefix('customer')->group(function () {
             ->name('customer.dashboard');
     });
 
-    Route::post('customer/logout', [AuthController::class, 'logout'])->name('customer.logout');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('customer.logout');
 
 });
 
@@ -35,6 +36,15 @@ Route::prefix('admin')->group(function () {
             ->name('admin.dashboard');
     });
 
-    Route::post('admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
 });
+
+Route::middleware(['auth:admin', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+    });
+
+Route::post('admin/products/import',[ProductController::class, 'import'])->name('admin.products.import');
