@@ -11,19 +11,19 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function home()
-    {
-        return view('home');
-    }
+    // public function home()
+    // {
+    //     return view('home');
+    // }
 
     public function showRegister()
     {
-        return view('auth.register');
+        return view('customer.register');
     }
 
     public function showLogin()
     {
-        return view('auth.login');
+        return view('customer.login');
     }
 
     public function register(RegisterRequest $request)
@@ -41,7 +41,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('home')->with('success', 'Registered successfully');
+        return redirect()->route('customer.dashboard')->with('success', 'Registered successfully');
     }
 
     public function login(Request $request)
@@ -51,11 +51,11 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if(Auth::attempt($validated)){
+        if(Auth::guard('customer')->attempt($validated)){
             
             $request->session()->regenerate();
 
-            return redirect()->route('home')->with('success', 'Login successfully');
+            return redirect()->route('customer.dashboard')->with('success', 'Login successfully');
         }
 
         throw ValidationException::withMessages([
@@ -66,14 +66,55 @@ class AuthController extends Controller
 
     }
 
+    public function showAdminLogin()
+    {
+        return view('admin.login');
+    }
+
+    public function adminLogin(Request $request)
+    {
+        if (Auth::guard('admin')->attempt(
+            array_merge(
+                $request->only('email', 'password'),
+                ['role' => 'admin']
+            )
+        )) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return back()->withErrors(['email' => 'Invalid Admin credentials']);
+    }
+
+    // public function logout(Request $request)
+    // {
+    //     Auth::logout();
+
+    //     $request->session()->invalidate();
+
+    //     $request->session()->regenerateToken();
+
+    //     return redirect()->route('show.login');
+    // }
+    
+    // public function logout($guard)
+    // {
+    //     Auth::guard($guard)->logout();
+    //     return redirect('/');
+    // }
+
     public function logout(Request $request)
     {
-        Auth::logout();
+        if (Auth::guard('admin')->check()) {
+            Auth::guard('admin')->logout();
+        }
+
+        if (Auth::guard('customer')->check()) {
+            Auth::guard('customer')->logout();
+        }
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        return redirect()->route('show.login');
+        return redirect('/');
     }
 }

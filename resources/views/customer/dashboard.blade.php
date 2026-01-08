@@ -4,6 +4,6 @@
 
 @section('content')
 
-<h1>Hello, This is home page</h1>
+<h1>Hello, This is Customer dashboard page</h1>
 
 @endsection
